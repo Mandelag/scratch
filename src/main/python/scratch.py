@@ -1,6 +1,17 @@
 import numpy as np
 from itertools import combinations_with_replacement
 
+
+cache_row = 10
+cache_impl = np.empty((cache_row*cache_row,), dtype=np.uint16)
+
+def cache(c, r, w=False):
+    if r <= 1:
+        w = 1
+    if w:
+        cache_impl[r*c+c] = w
+    return cache_impl[r*c+c]
+
 def pascals_triangle(column, row):
     def pascals_rec(c, r):
         if c == 0 or c == r:
@@ -8,6 +19,23 @@ def pascals_triangle(column, row):
         else:
             return pascals_rec(c-1, r-1) + pascals_rec(c, r-1)
     return pascals_rec(column, row)
+
+def pascals_triangle_cached(column, row):
+    def pascals_rec(c, r):
+        if c == 0 or c == r:
+            cache(0, 0, 1)
+            cache(0, 1, 1)
+            cache(1, 1, 1)
+        else:
+            return cache(c-1, r-1) + cache(c, r-1)
+    return pascals_rec(column, row)
+
+
+for r in range(cache_row):
+    for c in range(r+1):
+        cache(c, r, pascals_triangle_cached(c, r))
+
+print(cache_impl)
 
 def pascals_cache_builder(row, pascals_function):
     cache_length = int(row*(row+1)/2)
@@ -31,8 +59,8 @@ def pascals_cache_builder(row, pascals_function):
 # column 2 row 2 = 1
 
 #print(pascals_triangle(1,1))
-from_cache = pascals_cache_builder(10,pascals_triangle)
-print(from_cache)
+#from_cache = pascals_cache_builder(10,pascals_triangle)
+#print(from_cache)
 
 def factorial(n, lower_bound=1):
     def factorial_rec(acc, r):
